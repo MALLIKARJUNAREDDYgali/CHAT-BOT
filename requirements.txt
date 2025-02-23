@@ -1,5 +1,6 @@
-langchain 
-langchain_groq 
+streamlit
+langchain
+langchain-community
+langchain-groq
 python-dotenv
-sqllite
-uuid
+tavily-python
