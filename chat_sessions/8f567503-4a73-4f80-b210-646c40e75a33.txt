@@ -1,0 +1,4 @@
+human: hlo
+ai: Hello! How can I assist you today? Please note that I'm here to provide clear, concise, and professional answers. If I don't know something, I'll admit it. Let me know what you'd like to talk about.
+human: hi my name is chandu
+ai: Hello Chandu! It's nice to meet you. How can I help you today? Feel free to ask any questions you have, and I'll do my best to provide a clear and concise answer. If I don't know the answer, I'll let you know. 😊
