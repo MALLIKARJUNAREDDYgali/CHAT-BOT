@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime
 import sqlite3
 import json
+from tavily import TavilyClient
 
 # Set Groq API key
 os.environ["GROQ_API_KEY"] = "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"
@@ -102,6 +103,32 @@ def get_all_sessions():
     conn.close()
     return sessions
 
+# Initialize Tavily Client
+def init_tavily_client():
+    return TavilyClient(api_key="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")
+
+# Improved search function with time-sensitive queries
+def perform_tavily_search(query):
+    tavily_client = init_tavily_client()
+    try:
+        # Add time context to the query
+        dated_query = f"{query} - current - {datetime.now().strftime('%Y-%m-%d')}"
+        response = tavily_client.search(
+            query=dated_query,
+            search_depth="advanced",
+            max_results=3,
+            include_answer=True
+        )
+        return response
+    except Exception as e:
+        return f"Error performing search: {str(e)}"
+
+# Function to detect if query needs real-time data
+def needs_realtime_data(query):
+    time_keywords = ['yesterday', 'today', 'recent', 'latest', 'current', 'now', 'just']
+    topic_keywords = ['match', 'score', 'result', 'news', 'update', 'happen']
+    return any(word in query.lower() for word in time_keywords + topic_keywords)
+
 # ChatGPT-like sidebar with New Chat button
 with st.sidebar:
     st.header("ChatGPT")
@@ -156,7 +183,7 @@ for message in st.session_state.history:
     with st.chat_message("user" if message["role"] == "human" else "assistant"):
         st.markdown(message["content"])
 
-# User input
+# User input handling with improved real-time detection
 if prompt := st.chat_input("Message Chat..."):
     st.session_state.history.append({"role": "human", "content": prompt})
     with st.chat_message("user"):
@@ -164,7 +191,26 @@ if prompt := st.chat_input("Message Chat..."):
     
     try:
         with st.spinner("Thinking..."):
+            # Generate initial response
             response = st.session_state.conversation.predict(input=prompt)
+            
+            # Check if real-time data needed
+            if needs_realtime_data(prompt):
+                search_results = perform_tavily_search(prompt)
+                
+                if isinstance(search_results, dict):
+                    # Prepend direct answer if available
+                    if search_results.get('answer'):
+                        response = f"**Latest Update:**\n{search_results['answer']}\n\n{response}"
+                    # Add sources section
+                    if search_results.get('results'):
+                        response += "\n\n**Verified Sources:**\n"
+                        for idx, result in enumerate(search_results['results'][:3], 1):
+                            response += f"{idx}. [{result['title']}]({result['url']})\n"
+                    response += "\n\n*Updated with real-time information*"
+                else:
+                    response += f"\n\n{search_results}"
+
     except Exception as e:
         response = f"Error: {str(e)}"
         st.error(response)
