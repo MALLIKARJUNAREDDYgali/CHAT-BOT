@@ -1,6 +1,10 @@
 streamlit
-langchain
-langchain-community
 langchain-groq
-python-dotenv
+spacy
+nltk
+scikit-learn
 tavily-python
+transformers
+yake
+python-dotenv
+sqlite3
